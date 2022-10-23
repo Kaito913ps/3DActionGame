@@ -59,6 +59,11 @@ public class PlayerController : MonoBehaviour
             Vector3 walkSpeed = _rb.velocity;
             walkSpeed.y = 0;
             _anim.SetFloat("Speed", walkSpeed.magnitude);
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                _anim.SetTrigger("Slash");
+            }
         }
     }
 
