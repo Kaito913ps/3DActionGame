@@ -3,6 +3,8 @@ using System.Collections;
 
 public class PlayerCharCont : MonoBehaviour
 {
+    public bool _active = true;
+
     public float walkSpeed = 2.0f; 
     public float runSpeed = 4.0f; 
 
@@ -24,12 +26,17 @@ public class PlayerCharCont : MonoBehaviour
     private CollisionFlags collisionFlags;
 
     // 歩き始める速度
-    private float walkTimeStart = 0.0f;    
+    private float walkTimeStart = 0.0f;
+
+    private CharacterController _controller;
+    private Animator _animator;
 
     // Use this for initialization
     void Start()
     {
         moveDirection = transform.TransformDirection(Vector3.forward);
+        _controller =this.GetComponent<CharacterController>();
+        _animator = GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -43,11 +50,11 @@ public class PlayerCharCont : MonoBehaviour
         // 右方向ベクターは常にforwardに直交
         Vector3 right = new Vector3(forward.z, 0, -forward.x);    
 
-        float v = Input.GetAxisRaw("Vertical");
-        float h = Input.GetAxisRaw("Horizontal");
+        float InputZ = _active ? Input.GetAxisRaw("Vertical") : 0;
+        float InputX = _active ? Input.GetAxisRaw("Horizontal") : 0;
 
         // カメラと連動した進行方向を得る
-        Vector3 targetDirection = h * right + v * forward;
+        Vector3 targetDirection = InputX * right + InputZ * forward;
 
         // 接地？
         if ((collisionFlags & CollisionFlags.CollidedBelow) != 0)  
@@ -80,10 +87,10 @@ public class PlayerCharCont : MonoBehaviour
 
             moveSpeed = Mathf.Lerp(moveSpeed, targetSpeed, curSmooth);
 
-            Animator animator = GetComponent<Animator>();
+          
             // Animator に移動速度のパラメータを渡す
-            animator.SetFloat("spd", moveSpeed); 
-            animator.SetBool("fall", false);
+            _animator.SetFloat("spd", moveSpeed); 
+            _animator.SetBool("fall", false);
 
             if (moveSpeed < walkSpeed * 0.3)
                 walkTimeStart = Time.time;
@@ -95,8 +102,7 @@ public class PlayerCharCont : MonoBehaviour
             verticalSpeed -= gravity * Time.deltaTime;  
             if (verticalSpeed < -4.0)
             {
-                Animator animator = GetComponent<Animator>();
-                animator.SetBool("fall", true);
+                _animator.SetBool("fall", true);
             }
         }
 
@@ -104,8 +110,8 @@ public class PlayerCharCont : MonoBehaviour
         movement = moveDirection * moveSpeed + new Vector3(0, verticalSpeed, 0);   
         movement *= Time.deltaTime;
 
-        CharacterController controller = GetComponent<CharacterController>();   
-        collisionFlags = controller.Move(movement);   // キャラを移動
+     
+        collisionFlags = _controller.Move(movement);   // キャラを移動
 
         // 接地してると移動方向に回転
         if ((collisionFlags & CollisionFlags.CollidedBelow) != 0)       
