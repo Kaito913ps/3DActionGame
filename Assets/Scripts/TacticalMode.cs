@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using Cinemachine;
-
+using DG.Tweening;
+using Unity.VisualScripting;
 
 public enum Skill
 {
     _spark,   // 剣を振るう
-    _ability, // アビリティ
+    _spin, //spin
     _abilityHit,  // ヒット
     _heal      //治療
 }
@@ -92,8 +93,60 @@ public class TacticalMode : MonoBehaviour
 
         if(Input.GetKeyDown(KeyCode.Escape))
         {
-
+            CancelAction();
         }
+    }
+
+
+    public void SpinAttack()
+    {
+        ModifyATB(-100);
+
+        StartCoroutine(AbilityCooldown());
+
+        SetTacticalMode(false);
+
+        MoveTowardsTarget(_targets[_targetIndex]);
+
+        _anime.SetTrigger("slashability");
+
+        ShakeCamera(Skill._spin, false);
+        ///
+    }
+
+    public void Heal()
+    {
+        ModifyATB(-100);
+
+        StartCoroutine(AbilityCooldown());
+
+        SetTacticalMode(false);
+
+        _anime.SetTrigger("heal");
+
+        
+
+    }
+
+    IEnumerator AbilityCooldown()
+    {
+        _usingAbility = true;
+        yield return new WaitForSeconds(1f);
+        _usingAbility = false;
+    }
+
+    IEnumerator DashCooldown()
+    {
+        _dashing = true;
+        yield return new WaitForSeconds(1f);
+        _dashing = false;
+    }
+
+    private Vector3 TargetOffset()
+    {
+        Vector3 position;
+        position = _targets[_targetIndex].position;
+        return Vector3.MoveTowards(position, transform.position, 1.2f);
     }
 
     private void CancelAction()
@@ -217,6 +270,15 @@ public class TacticalMode : MonoBehaviour
         return index;
     }
 
+    private void MoveTowardsTarget(Transform target)
+    {
+        if(Vector3.Distance(transform.position, target.position) > 1 && Vector3.Distance(transform.position, target.position) < 10)
+        {
+            StartCoroutine(DashCooldown());
+            transform.DOMove(TargetOffset(), .5f);
+            transform.DOLookAt(_targets[_targetIndex].position, .2f);
+        }
+    }
     private void OnTriggerEnter(Collider other)
     {
         if(other.CompareTag("Enemy"))
