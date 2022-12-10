@@ -31,6 +31,9 @@ public class PlayerCharCont : MonoBehaviour
     private CharacterController _controller;
     private Animator _animator;
 
+    [SerializeField]
+    //private UIManager _uistatus;
+
     // Use this for initialization
     void Start()
     {
@@ -118,5 +121,10 @@ public class PlayerCharCont : MonoBehaviour
         {
             transform.rotation = Quaternion.LookRotation(moveDirection);
         }
+
+        //if(_uistatus._life <= 0)
+        //{
+        //    return;
+        //}
     }
 }
